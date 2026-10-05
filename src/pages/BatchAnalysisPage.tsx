@@ -191,9 +191,19 @@ export function BatchAnalysisPage() {
     ? Math.min(((completedCount + currentFileFraction) / effectiveTotal) * 100, 99)
     : progress;
 
-  const remainingFilesFraction = Math.max(effectiveTotal - completedCount - currentFileFraction, 0);
-  const etaLabel = isAnalyzing && !isOutlierFile && completedDurationsMs.length > 0 && remainingFilesFraction > 0
-    ? formatDuration(remainingFilesFraction * avgFileDurationMs)
+  // The ETA must tick down in real time (1s per second), so it can't reuse
+  // the asymptotic fraction above (which slows to a crawl on long files and
+  // made the countdown run slower than the elapsed clock). It's a plain
+  // prediction based on the average: what's left of the average for the
+  // current file, plus the average for each file still queued. Once the
+  // current file exceeds the average, its share is 0 and the label switches
+  // to saying so instead of showing a number that no longer means anything.
+  const queuedFiles = Math.max(effectiveTotal - completedCount - 1, 0);
+  const currentFileRemainingMs = Math.max(avgFileDurationMs - elapsedOnCurrentFileMs, 0);
+  const isOverAverage = elapsedOnCurrentFileMs > avgFileDurationMs;
+  const etaMs = currentFileRemainingMs + queuedFiles * avgFileDurationMs;
+  const etaLabel = isAnalyzing && !isOutlierFile && completedDurationsMs.length > 0 && etaMs > 0
+    ? `${isOverAverage ? 'at least ' : ''}${formatDuration(etaMs)}`
     : null;
   const elapsedOnCurrentFileLabel = isAnalyzing && elapsedOnCurrentFileMs > 0
     ? formatDuration(elapsedOnCurrentFileMs)
@@ -414,7 +424,11 @@ export function BatchAnalysisPage() {
                   </div>
                   <span className="percentage">
                     {Math.round(smoothProgress)}%
-                    {etaLabel && <span className="eta-label"> · ~{etaLabel} left</span>}
+                    {etaLabel && (
+                      <span className="eta-label" title="Prediction based on the average time of the contracts analyzed so far">
+                        {' '}· est. ~{etaLabel} left
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className="progress-bar-outer">
