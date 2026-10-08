@@ -36,23 +36,5 @@ npm run tauri dev
 
 ---
 *Nota: O primeiro comando `tauri dev` pode demorar um pouco mais pois irá compilar as dependências de Rust.*
-
-
-### Gerar nova versão no github - tag
-No projeto local executar:
-
-Para gerar um patch (1.0.x):
-```bash
-npm version patch
-git push origin main --tags
-```
-Para gerar uma minor (1.x.-):
-```bash
-npm version minor
-git push origin main --tags
-```
-Para gerar uma major (x.-.-):
-```bash
-npm version major
 git push origin main --tags
 ```
