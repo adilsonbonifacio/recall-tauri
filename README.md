@@ -37,4 +37,3 @@ npm run tauri dev
 ---
 *Nota: O primeiro comando `tauri dev` pode demorar um pouco mais pois irá compilar as dependências de Rust.*
 git push origin main --tags
-```
